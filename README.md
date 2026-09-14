@@ -25,11 +25,7 @@ DLPO combines:
 The resulting objective is:
 
 $$
-\mathcal{L}_{\mathrm{DLPO}}
-=
-\mathcal{L}_{\mathrm{pref}}
-+
-\lambda \mathcal{L}_{\mathrm{latent}}
+\mathcal{L}_{\mathrm{DLPO}} = \mathcal{L}_{\mathrm{pref}} + \lambda \mathcal{L}_{\mathrm{latent}}
 $$
 
 where:
@@ -47,9 +43,7 @@ z_t = W_{\mathrm{lm}}h_t + b
 $$
 
 $$
-p(x_{t+1}\mid x_{\leq t})
-=
-\operatorname{softmax}(z_t)
+p(x_{t+1}\mid x_{\leq t}) = \operatorname{softmax}(z_t)
 $$
 
 DPO and ORPO supervise the output probabilities. DLPO additionally supervises the geometry of the hidden representations from which those probabilities are produced.
@@ -102,11 +96,7 @@ DLPO does not assume that the learned direction is automatically “truthfulness
 The training set contains preference triples:
 
 $$
-\mathcal{D}
-=
-\left\{
-(x_i,y_i^+,y_i^-)
-\right\}_{i=1}^{n}
+\mathcal{D} = \left\{ (x_i,y_i^+,y_i^-) \right\}_{i=1}^{n}
 $$
 
 where:
@@ -132,33 +122,17 @@ Let $H \in \mathbb{R}^{T \times d}$ be the hidden states for a sequence and $m$ 
 The default response representation is a masked mean:
 
 $$
-\operatorname{Pool}_{m}(H)
-=
-\frac{
-\sum_{t=1}^{T}m_tH_t
-}{
-\max\left(\sum_{t=1}^{T}m_t,1\right)
-}
+\operatorname{Pool}_{m}(H) = \frac{\sum_{t=1}^{T}m_tH_t}{\max\left(\sum_{t=1}^{T}m_t,1\right)}
 $$
 
 For each preference pair, DLPO computes:
 
 $$
-c_i
-=
-\operatorname{Pool}_{m_+}
-\left(
-H_\theta(x_i,y_i^+)
-\right)
+c_i = \operatorname{Pool}_{m_+}\left(H_\theta(x_i,y_i^+)\right)
 $$
 
 $$
-r_i
-=
-\operatorname{Pool}_{m_-}
-\left(
-H_\theta(x_i,y_i^-)
-\right)
+r_i = \operatorname{Pool}_{m_-}\left(H_\theta(x_i,y_i^-)\right)
 $$
 
 The prompt representation is estimated from the prompt-prefix states of both sequences:
@@ -179,19 +153,7 @@ Because chosen and rejected examples share the same rendered prompt prefix, the 
 For DPO, the preference margin is:
 
 $$
-\Delta_{\mathrm{DPO},i}
-=
-\left[
-\log\pi_\theta(y_i^+\mid x_i)
--
-\log\pi_\theta(y_i^-\mid x_i)
-\right]
--
-\left[
-\log\pi_{\mathrm{ref}}(y_i^+\mid x_i)
--
-\log\pi_{\mathrm{ref}}(y_i^-\mid x_i)
-\right]
+\Delta_{\mathrm{DPO},i} = \left[\log\pi_\theta(y_i^+\mid x_i)- \log\pi_\theta(y_i^-\mid x_i)\right] - \left[\log\pi_{\mathrm{ref}}(y_i^+\mid x_i) - \log\pi_{\mathrm{ref}}(y_i^-\mid x_i)\right]
 $$
 
 The DPO loss is:
@@ -211,18 +173,7 @@ $$
 For ORPO, the loss combines chosen-response supervised fine-tuning with an odds-ratio preference term:
 
 $$
-\mathcal{L}_{\mathrm{ORPO}}
-=
-\mathbb{E}_i[-\bar{\ell}_{\theta,i}^{+}]
-+
-\alpha
-\mathbb{E}_i
-\left[
-\operatorname{softplus}
-\left(
--\Delta_{\mathrm{ORPO},i}
-\right)
-\right]
+\mathcal{L}_{\mathrm{ORPO}} = \mathbb{E}_i[-\bar{\ell}_{\theta,i}^{+}] + \alpha\mathbb{E}_i\left[\operatorname{softplus}\left(-\Delta_{\mathrm{ORPO},i}\right)\right]
 $$
 
 ORPO is reference-free. DPO requires a frozen reference model.
@@ -232,25 +183,13 @@ ORPO is reference-free. DPO requires a frozen reference model.
 DLPO first computes a prompt-relative similarity margin:
 
 $$
-s_i
-=
-\operatorname{cos}(p_i,c_i)
--
-\operatorname{cos}(p_i,r_i)
+s_i = \operatorname{cos}(p_i,c_i) - \operatorname{cos}(p_i,r_i)
 $$
 
 The corresponding soft-margin loss is:
 
 $$
-\mathcal{L}_{\mathrm{sim}}
-=
-\mathbb{E}_i
-\left[
-\operatorname{softplus}
-\left(
-\gamma(m-s_i)
-\right)
-\right]
+\mathcal{L}_{\mathrm{sim}} = \mathbb{E}_i\left[\operatorname{softplus}\left(\gamma(m-s_i)\right)\right]
 $$
 
 This encourages:
@@ -274,44 +213,25 @@ $$
 The batch mean displacement is:
 
 $$
-\bar{d}_B
-=
-\frac{1}{|B|}
-\sum_{i\in B}d_i
+\bar{d}_B = \frac{1}{|B|}\sum_{i\in B}d_i
 $$
 
 The batch preference direction is:
 
 $$
-u_B
-=
-\frac{
-\bar{d}_B
-}{
-\max(\|\bar{d}_B\|_2,\varepsilon)
-}
+u_B = \frac{\bar{d}_B}{\max(\|\bar{d}_B\|_2,\varepsilon)}
 $$
 
 Each pairwise displacement is then aligned with the batch direction:
 
 $$
-a_i
-=
-\left\langle
-\frac{d_i}{\sqrt{\|d_i\|_2^2+\varepsilon}},
-u_B
-\right\rangle
+a_i = \left\langle \frac{d_i}{\sqrt{\|d_i\|_2^2+\varepsilon}}, u_B\right\rangle
 $$
 
 The directional loss is:
 
 $$
-\mathcal{L}_{\mathrm{dir}}
-=
-\mathbb{E}_{i\in B}
-\left[
-\operatorname{softplus}(-\gamma a_i)
-\right]
+\mathcal{L}_{\mathrm{dir}} = \mathbb{E}_{i\in B}\left[\operatorname{softplus}(-\gamma a_i)\right]
 $$
 
 This term encourages preference pairs in the same batch to share a reusable direction in hidden space.
@@ -319,14 +239,7 @@ This term encourages preference pairs in the same batch to share a reusable dire
 When both latent components are enabled:
 
 $$
-\mathcal{L}_{\mathrm{latent}}
-=
-\frac{1}{2}
-\left(
-\mathcal{L}_{\mathrm{sim}}
-+
-\mathcal{L}_{\mathrm{dir}}
-\right)
+\mathcal{L}_{\mathrm{latent}} = \frac{1}{2}\left(\mathcal{L}_{\mathrm{sim}} + \mathcal{L}_{\mathrm{dir}}\right)
 $$
 
 If only one component is enabled, that component is used without the factor of one-half.
